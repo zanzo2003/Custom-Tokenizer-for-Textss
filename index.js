@@ -61,12 +61,32 @@
 				resultDiv.textContent = 'Please enter tokens.';
 				return;
 			}
-			// Accept comma or space separated tokens
-			let tokens = input.split(',').map(t => t.trim()).filter(Boolean);
-			if (tokens.length === 1) {
-				// try splitting by space if only one token
-				tokens = input.split(/\s+/).filter(Boolean);
+			let tokens = [];
+			try {
+				// Try to parse as JSON array (e.g., ["72 101 108", "32", ...])
+				if (input.startsWith('[')) {
+					tokens = JSON.parse(input);
+				} else {
+					// fallback: comma or space separated
+					tokens = input.split(',').map(t => t.trim()).filter(Boolean);
+					if (tokens.length === 1) {
+						tokens = input.split(/\s+/).filter(Boolean);
+					}
+				}
+			} catch (e) {
+				resultDiv.textContent = 'Invalid input format.';
+				return;
 			}
-			const text = detokenize(tokens);
+			// Flatten the array of string tokens into a single array of numbers (as strings)
+			let flatTokens = [];
+			tokens.forEach(token => {
+				if (typeof token === 'string') {
+					token.split(/\s+/).forEach(num => {
+						if (num) flatTokens.push(num);
+					});
+				}
+			});
+			// Now detokenize using the flat array
+			const text = detokenize(flatTokens);
 			resultDiv.textContent = text;
 		});
